@@ -14,6 +14,8 @@ pnpm dev
 
 访问 http://localhost:3000。密钥只供服务端使用，`.env.local` 已被 Git 忽略。长桥请求需要可访问 API/WebSocket，并拥有相应市场行情权限。大陆网络可在环境文件设置 `LONGBRIDGE_REGION=cn`，修改后重启服务。
 
+部署到 Vercel 时，在项目的 Settings → Environment Variables 中为 Production（按需也为 Preview）设置 `LONGBRIDGE_APP_KEY`、`LONGBRIDGE_APP_SECRET` 和 `LONGBRIDGE_ACCESS_TOKEN`，然后重新部署。这里的 Access Token 必须是长桥开发者中心的旧版 API Key 凭证，不能使用 OAuth Access Token。服务端报错的原始原因可在 Vercel Function Logs 中查看；日志会遮盖上述三个密钥的值。
+
 ## 功能
 
 - 日期区间默认最近一年，以北京时间今天为结束日。

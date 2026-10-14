@@ -1,6 +1,7 @@
 import 'server-only';
 import type { QuoteContext } from 'longbridge';
 import type { Candle, Stock } from './backtest';
+import { isNativeBindingError, longbridgeErrorMessage } from './longbridge-error';
 let context: Promise<QuoteContext> | undefined;
 let sdk: Promise<typeof import('longbridge')> | undefined;
 function getSdk() {
@@ -8,7 +9,7 @@ function getSdk() {
   return sdk;
 }
 export function getContext() {
-  if (!process.env.LONGBRIDGE_APP_KEY || !process.env.LONGBRIDGE_APP_SECRET || !process.env.LONGBRIDGE_ACCESS_TOKEN) throw new Error('请在 .env.local 配置长桥 API 密钥并重启服务');
+  if (!process.env.LONGBRIDGE_APP_KEY || !process.env.LONGBRIDGE_APP_SECRET || !process.env.LONGBRIDGE_ACCESS_TOKEN) throw new Error('服务器未配置长桥 API 密钥');
   if (!context) context = getSdk().then(({ Config, QuoteContext }) => QuoteContext.new(Config.fromApikeyEnv())).catch(error => { context = undefined; throw error; });
   return context;
 }
@@ -42,8 +43,10 @@ export async function getHistory(symbol: string, start: string, end: string, adj
   return unique;
 }
 export function apiError(error: unknown) {
-  const text = error instanceof Error ? error.message : String(error);
-  if (/请在/.test(text)) return text;
+  const text = longbridgeErrorMessage(error);
+  console.error('Longbridge quote error:', text);
+  if (/服务器未配置长桥 API 密钥/.test(text)) return text;
+  if (isNativeBindingError(text)) return '服务器未能加载长桥原生模块，请检查 Vercel 部署依赖。';
   if (/401|403|token|permission|auth|package|subscription/i.test(text)) return '长桥认证或行情权限不足，请检查 API 密钥、令牌和该市场行情权限。';
   return '长桥行情请求失败，请检查网络、股票代码和行情权限后重试。';
 }
