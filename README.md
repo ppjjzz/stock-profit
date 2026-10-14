@@ -16,7 +16,7 @@ pnpm dev
 
 部署到 Vercel 时，在项目的 Settings → Environment Variables 中为 Production（按需也为 Preview）设置 `LONGBRIDGE_APP_KEY`、`LONGBRIDGE_APP_SECRET` 和 `LONGBRIDGE_ACCESS_TOKEN`，然后重新部署。这里的 Access Token 必须是长桥开发者中心的旧版 API Key 凭证，不能使用 OAuth Access Token。服务端报错的原始原因可在 Vercel Function Logs 中查看；日志会遮盖上述三个密钥的值。
 
-`pnpm run build` 会先验证已安装的 Linux 长桥原生绑定，并复制到 `.native/`，再执行 `next build`。该文件会随 API 函数一起部署；若依赖未安装或二进制无法加载，构建会直接报出原因。
+`pnpm run build` 会先检查 Linux 长桥原生绑定。若 npm 发布的二进制要求比 Vercel 更高的 GLIBC 版本，构建会从长桥官方固定版本源码编译兼容的绑定，复制到 `.native/`，再执行 `next build`。首次构建因此会比普通部署耗时更久；编译或加载失败会直接报出原因。
 
 ## 功能
 
