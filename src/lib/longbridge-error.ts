@@ -1,7 +1,18 @@
 import 'server-only';
 
 export function longbridgeErrorMessage(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error);
+  const causes: string[] = [];
+  let current: unknown = error;
+  for (let depth = 0; current != null && depth < 8; depth++) {
+    if (!(current instanceof Error)) {
+      causes.push(String(current));
+      break;
+    }
+    const code = 'code' in current ? ` (${String(current.code)})` : '';
+    causes.push(`${current.name}${code}: ${current.message}`);
+    current = current.cause;
+  }
+  const message = causes.join(' <- ');
   return ['LONGBRIDGE_APP_KEY', 'LONGBRIDGE_APP_SECRET', 'LONGBRIDGE_ACCESS_TOKEN']
     .reduce((safeMessage, name) => {
       const secret = process.env[name];

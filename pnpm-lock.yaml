@@ -87,6 +87,10 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+    optionalDependencies:
+      longbridge-linux-x64-gnu:
+        specifier: 5.2.0
+        version: 5.2.0
 
 packages:
 

@@ -2,9 +2,7 @@ import type { NextConfig } from 'next';
 
 const longbridgeRuntimeFiles = [
   './node_modules/longbridge/**/*',
-  './node_modules/longbridge-linux-x64-gnu/**/*',
   './node_modules/.pnpm/longbridge@*/node_modules/longbridge/**/*',
-  './node_modules/.pnpm/longbridge-linux-x64-gnu@*/node_modules/longbridge-linux-x64-gnu/**/*',
 ];
 
 const nextConfig: NextConfig = {
