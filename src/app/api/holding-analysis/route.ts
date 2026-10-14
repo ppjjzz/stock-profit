@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     settings = validateSettings(input.settings);
   } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : '分析参数无效' }, { status: 400 }); }
   let context;
-  try { context = getAgentContext(); }
+  try { context = await getAgentContext(); }
   catch (error) { return NextResponse.json({ error: agentApiError(error) }, { status: 503 }); }
   const query = analysisQuery(settings);
   const encoder = new TextEncoder();

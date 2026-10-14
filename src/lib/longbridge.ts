@@ -1,10 +1,15 @@
 import 'server-only';
-import { Config, QuoteContext, NaiveDate } from 'longbridge';
+import type { QuoteContext } from 'longbridge';
 import type { Candle, Stock } from './backtest';
 let context: Promise<QuoteContext> | undefined;
+let sdk: Promise<typeof import('longbridge')> | undefined;
+function getSdk() {
+  if (!sdk) sdk = import('longbridge').catch(error => { sdk = undefined; throw error; });
+  return sdk;
+}
 export function getContext() {
   if (!process.env.LONGBRIDGE_APP_KEY || !process.env.LONGBRIDGE_APP_SECRET || !process.env.LONGBRIDGE_ACCESS_TOKEN) throw new Error('请在 .env.local 配置长桥 API 密钥并重启服务');
-  if (!context) context = Promise.resolve().then(() => QuoteContext.new(Config.fromApikeyEnv())).catch(error => { context = undefined; throw error; });
+  if (!context) context = getSdk().then(({ Config, QuoteContext }) => QuoteContext.new(Config.fromApikeyEnv())).catch(error => { context = undefined; throw error; });
   return context;
 }
 export async function stockInfo(symbols: string[]): Promise<Stock[]> {
@@ -18,6 +23,7 @@ export async function getHistory(symbol: string, start: string, end: string, adj
   const cached = historyCache.get(key);
   if (cached && cached.expires > Date.now()) return cached.candles;
   const ctx = await getContext();
+  const { NaiveDate } = await getSdk();
   const date = (s: string) => { const [y,m,d] = s.split('-').map(Number); return new NaiveDate(y,m,d); };
   // Fetch in yearly chunks to stay below the daily-candle request limit.
   const candles: Candle[] = [];
@@ -61,6 +67,7 @@ export async function getStockChart(symbol:string, period:import('./stock-chart'
   const cached = chartCache.get(key);
   if(cached && cached.expires>Date.now())return cached.data;
   const ctx=await getContext();
+  const {NaiveDate}=await getSdk();
   const timezone=marketTimezone(symbol);
   const data:import('./stock-chart').StockChartData={symbol,period,timezone,candles:[],intraday:[]};
   if(period==='intraday') {

@@ -1,10 +1,10 @@
 import 'server-only';
-import { AgentContext, Config } from 'longbridge';
 
-export function getAgentContext() {
+export async function getAgentContext() {
   if (!process.env.LONGBRIDGE_APP_KEY || !process.env.LONGBRIDGE_APP_SECRET || !process.env.LONGBRIDGE_ACCESS_TOKEN) {
     throw new Error('请在 .env.local 配置长桥 API 密钥并重启服务');
   }
+  const { AgentContext, Config } = await import('longbridge');
   return AgentContext.new(Config.fromApikeyEnv());
 }
 
