@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 时盈 · 股票收益可视化回测
 
-## Getting Started
+Next.js App Router + TypeScript + pnpm + shadcn/ui（Radix + Tailwind CSS），使用长桥官方 Node.js SDK 获取真实历史日线，Recharts 绘制平滑曲线。
 
-First, run the development server:
+## 启动
+
+需要 Node.js 22.18+（推荐 24）和 pnpm 10。
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local # 已配置密钥时不要覆盖现有文件
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 http://localhost:3000。密钥只供服务端使用，`.env.local` 已被 Git 忽略。长桥请求需要可访问 API/WebSocket，并拥有相应市场行情权限。大陆网络可在环境文件设置 `LONGBRIDGE_REGION=cn`，修改后重启服务。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 功能
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 日期区间默认最近一年，以北京时间今天为结束日。
+- A 股使用长桥全量沪深证券列表搜索中文名称/代码，支持六位代码自动识别，例如 `600519`、`300750`；美股/港股支持常用名称及完整代码校验，例如 `AAPL.US`、`700.HK`。
+- 搜索市场筛选：全部、A 股、美股、港股。
+- 最多 8 只股票，选择后通过 shadcn Dialog 设置每只股票的初始金额或股数，可点击铅笔修改。
+- 初始持仓只配置金额或股数，定投计划可选，支持添加、编辑和删除。
+- 定投弹窗可从已添加股票选择，也可搜索同币种新股票仅定投；初始持仓和定投合计最多 8 只股票、32 条计划。
+- 每日按交易日执行；每周/每两周选择周几，每月选择 1–31 号（不足该日号时取月末），非交易日顺延到该股票下一个可用交易日。
+- 总市值与单股市值标签，累计投入参考线。
+- 时间轴逐日回放、暂停、重播、进度拖动与 0.5×/1×/2×/4×/8× 倍速。
+- 当前市值、投入、收益、入金调整后的净值最大回撤与持仓表。
+- 已选股票旁的蜡烛图图标打开个股行情弹窗，支持分时、日、月、季、年。日/月/季/年使用长桥原生前复权 OHLC 数据；分时为最新交易日的价格、均价和成交量。K 线可切换回测区间或最近 1/5/10 年，支持缩放拖动和十字光标。
+- 跨币种选股始终打开配置弹窗；保存按钮明确显示切换组合，取消保留原股票。同一组合仍只计算一种币种。
+- 完整回测 CSV 导出。
+- 独立六指数走势图：标普 500（`.SPX.US`）、纳斯达克综合（`.IXIC.US`）、沪深 300（`000300.SH`）、创业板指（`399006.SZ`）、恒生指数（`HSI.HK`）、恒生科技指数（`HSTECH.HK`），支持点击标签显隐。指数以首个可用收盘价为 0% 归一化，采用未复权价格指数，不将不同币种指数点位相加。获取不到的指数单独显示错误，不使用 ETF 替代。
 
-## Learn More
+## 计算口径
 
-To learn more about Next.js, take a look at the following resources:
+使用长桥前复权日线收盘价，允许小数份额，买入后持有至区间结束。初始投入在各股票首个可用交易日执行；按金额配置用价格换算份额，按股数配置将份额乘价格记为初始成本，此处股数属于复权份额。各定投计划从回测开始日起独立安排，首次计划日可以与初始持仓同日执行。每周/每两周以区间内首次所选星期为锚点，之后每 7/14 天执行；每月使用所选日号，不存在该日时取月末。休市顺延不改变后续计划日期，每日计划仅在该股票交易日买入一次。首次可用行情迟于计划时只执行一期，不累计补缴此前多期；未设初始持仓的股票仅按计划买入。组合日期取各股交易日并集，休市或无当日数据沿用上一交易日价格；不会用未来价格填补历史。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+同一组合只允许同币种股票，不做汇率换算。不计手续费、税费、整手约束和单独现金分红。前复权价格可能体现除权除息调整，但没有逐笔现金派息、扣税或红利再投账本，因此不是完整含息总回报。收益率为 `(当前市值 - 累计投入) / 累计投入`，不是年化或资金加权收益率。前复权价格是研究用价格，不等同于历史实际成交报价。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+历史请求按年度分块，行情在服务进程中缓存 15 分钟。权限/认证/网络失败会显示错误，不使用虚构行情。此项目为本地工具，若向外部署，应先增加访问控制与 API 限流。
 
-## Deploy on Vercel
+## 验证
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm test
+pnpm lint
+pnpm build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+测试覆盖逐股金额/份额配置、休市价格延续、四种定投频率、月末定投锚点、交易日顺延、多计划与仅定投股票、币种和参数校验、北京时间最近一年日期、A 股搜索和指数归一化、OHLC 清洗，以及 A 股/港股配置弹窗与定投表单的选择、编辑、删除和请求提交流程。
+
+长桥 SDK 文档：https://longbridge.github.io/openapi/nodejs/classes/QuoteContext.html
