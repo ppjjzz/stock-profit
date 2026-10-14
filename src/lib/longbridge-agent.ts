@@ -1,10 +1,12 @@
 import 'server-only';
 import { isNativeBindingError, longbridgeErrorMessage } from './longbridge-error';
+import { configureLongbridgeNative } from './longbridge-native';
 
 export async function getAgentContext() {
   if (!process.env.LONGBRIDGE_APP_KEY || !process.env.LONGBRIDGE_APP_SECRET || !process.env.LONGBRIDGE_ACCESS_TOKEN) {
     throw new Error('服务器未配置长桥 API 密钥');
   }
+  configureLongbridgeNative();
   const { AgentContext, Config } = await import('longbridge');
   return AgentContext.new(Config.fromApikeyEnv());
 }

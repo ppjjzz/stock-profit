@@ -2,10 +2,14 @@ import 'server-only';
 import type { QuoteContext } from 'longbridge';
 import type { Candle, Stock } from './backtest';
 import { isNativeBindingError, longbridgeErrorMessage } from './longbridge-error';
+import { configureLongbridgeNative } from './longbridge-native';
 let context: Promise<QuoteContext> | undefined;
 let sdk: Promise<typeof import('longbridge')> | undefined;
 function getSdk() {
-  if (!sdk) sdk = import('longbridge').catch(error => { sdk = undefined; throw error; });
+  if (!sdk) {
+    configureLongbridgeNative();
+    sdk = import('longbridge').catch(error => { sdk = undefined; throw error; });
+  }
   return sdk;
 }
 export function getContext() {

@@ -21,5 +21,5 @@ export function longbridgeErrorMessage(error: unknown): string {
 }
 
 export function isNativeBindingError(message: string): boolean {
-  return /Cannot find native binding|Cannot find module ['"]longbridge-(?:linux|darwin|win32)|Failed to load external module longbridge-/i.test(message);
+  return /Longbridge native binding is missing|Cannot find native binding|Cannot find module ['"]longbridge-(?:linux|darwin|win32)|Failed to load external module longbridge-/i.test(message);
 }

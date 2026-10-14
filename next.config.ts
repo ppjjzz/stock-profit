@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const longbridgeRuntimeFiles = [
+  './.native/**/*',
   './node_modules/longbridge/**/*',
   './node_modules/.pnpm/longbridge@*/node_modules/longbridge/**/*',
 ];
