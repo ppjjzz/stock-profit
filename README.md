@@ -50,3 +50,13 @@ pnpm build
 测试覆盖逐股金额/份额配置、休市价格延续、四种定投频率、月末定投锚点、交易日顺延、多计划与仅定投股票、币种和参数校验、北京时间最近一年日期、A 股搜索和指数归一化、OHLC 清洗，以及 A 股/港股配置弹窗与定投表单的选择、编辑、删除和请求提交流程。
 
 长桥 SDK 文档：https://longbridge.github.io/openapi/nodejs/classes/QuoteContext.html
+
+## AI 持仓分析
+
+回测配置区点击「AI 持仓分析」打开弹窗并自动开始分析，服务端固定使用 UID 为 `chatbot` 的 LongbridgeAI，无需选择 Agent。沿用现有 `LONGBRIDGE_APP_KEY`、`LONGBRIDGE_APP_SECRET`、`LONGBRIDGE_ACCESS_TOKEN`，需具备相应 Agent 访问权限。
+
+分析使用 `AgentContext.conversationStreamed` 调用 `/v1/ai/agents/:id/conversations`，服务端将长桥 SSE 的阶段、工具进度、增量回答及最终结果实时转发给弹窗。提交的是打开弹窗时的配置快照：股票代码、逐股金额/股数、定投金额/频率/执行日、回测起止日期。未提交回测收益数据，提示 Agent 不编造回测表现，并只分析模拟组合。最终回答覆盖流式草稿，使用 `react-markdown` + `remark-gfm` 渲染 Markdown（含表格、列表和代码块），来源以链接展示。长桥返回的思考及过程文本单独放在「思考过程」中，默认折叠且可随时展开。
+
+支持分析失败重试、断流提示和停止接收。关闭弹窗会断开前端请求；长桥 SDK 暂无取消运行接口，停止接收或关闭弹窗不保证终止长桥端的生成。分析最长等待约 5 分钟；需要补充信息的 Agent 显示问题并标记暂停，本功能暂不提供多轮续答。
+
+接口文档：[Agent 对话及 SSE](https://open.longbridge.com/docs/ai/chat/conversation)。

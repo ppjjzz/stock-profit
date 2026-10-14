@@ -1,3 +1,3 @@
 import type { NextConfig } from 'next';
-const nextConfig: NextConfig = { serverExternalPackages: ['longbridge'] };
+const nextConfig: NextConfig = { serverExternalPackages: ['longbridge'], allowedDevOrigins: ['127.0.0.1'], };
 export default nextConfig;
