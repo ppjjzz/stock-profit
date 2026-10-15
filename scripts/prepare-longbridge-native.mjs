@@ -54,6 +54,7 @@ if (process.platform === 'linux' && process.arch === 'x64') {
       copyFileSync(source, target);
       run('strip', ['--strip-unneeded', target]);
       require(target);
+      source = target;
     } finally {
       rmSync(temporary, { recursive: true, force: true });
     }
